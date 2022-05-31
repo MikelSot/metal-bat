@@ -15,5 +15,10 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
+cms/certificates
+
 .idea/
 
+main
+
+README.md
