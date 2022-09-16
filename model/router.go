@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"github.com/MikelSot/metal-bat/domain/authorization"
 	"github.com/labstack/echo/v4"
 )
 
@@ -11,6 +12,5 @@ type RouterSpecification struct {
 	Logger   Logger
 	DBEngine string
 	DB       *sql.DB
-	//Auth     authorization.AuthMiddleware
-	//Scope    authorization.ScopeMiddleware
+	Auth     authorization.AuthMiddleware
 }
