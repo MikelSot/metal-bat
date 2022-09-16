@@ -1,5 +1,7 @@
 package handler
 
-func InitRoutes() {
+import "github.com/MikelSot/metal-bat/model"
+
+func InitRoutes(specification model.RouterSpecification) {
 
 }

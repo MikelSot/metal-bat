@@ -16,9 +16,16 @@
 # vendor/
 
 cms/certificates
+cmd/configuration.json
+cmd/logs
+configuration.json
+certificates
+logs
 
 .idea/
+.vscode
 
+main.exe
 main
 
 README.md
