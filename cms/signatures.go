@@ -1,4 +1,4 @@
-package cms
+package main
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/MikelSot/metal-bat/model"
-	"github.com/MikelSot/metal-bat/model/authorization"
 )
 
 func loadSignatures(conf model.Configuration, logger model.Logger) {
@@ -19,7 +18,7 @@ func loadSignatures(conf model.Configuration, logger model.Logger) {
 	filePublic, err := ioutil.ReadFile(public)
 	checkErr(err, fmt.Sprintf("no se pudo leer el archivo de firma publica %s", public))
 
-	authorization.LoadSignatures(filePrivate, filePublic, logger)
+	model.LoadSignatures(filePrivate, filePublic, logger)
 }
 
 func checkErr(err error, message string) {

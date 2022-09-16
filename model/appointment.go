@@ -4,7 +4,7 @@ import "time"
 
 type Appointment struct {
 	ID              uint              `json:"id"`
-	USerID          uint              `json:"u_ser_id"`
+	UserID          uint              `json:"user_id"`
 	WorkshopID      uint16            `json:"workshop_id"`
 	ServiceID       uint              `json:"service_id"`
 	VehicleID       uint              `json:"vehicle_id"`

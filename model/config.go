@@ -13,7 +13,6 @@ type Configuration struct {
 	AllowedOrigins  []string `json:"allowed_origins"`
 	AllowedMethods  []string `json:"allowed_methods"`
 	Database        Database `json:"database"`
-	Cache           Cache    `json:"cache"`
 }
 
 // Database model to connect to a database
@@ -25,13 +24,4 @@ type Database struct {
 	Port     uint   `json:"port"`
 	Name     string `json:"name"`
 	SSLMode  string `json:"ssl_mode"`
-}
-
-type Cache struct {
-	Driver         string `json:"driver,omitempty"`
-	Host           string `json:"host,omitempty"`
-	Port           uint   `json:"port,omitempty"`
-	Database       string `json:"database,omitempty"`
-	MainDB         string `json:"main_db"`
-	RemoteConfigDB string `json:"remote_config_db"`
 }

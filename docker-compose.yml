@@ -1,28 +1,17 @@
 version: "3.7"
 services:
-  db:
+  metal_bat_db:
     image: postgres:12.8-alpine
-    container_name: "clone-db"
+    container_name: "metal-bat-db"
+    restart: always
     environment:
-      - POSTGRES_DB=clone
+      - POSTGRES_DB=metal_bat_db
       - POSTGRES_USER=mikel
-      - POSTGRES_PASSWORD=123456
+      - POSTGRES_PASSWORD=secret
     volumes:
-      - data:/var/lib/postgresql/data
+      - metal_bat_data:/var/lib/postgresql/data
     ports:
       - "5000:5432"
-  api:
-    build:
-      context: .
-      dockerfile: api.Dockerfile
-    image: clone-whatsapp:1.0
-    container_name: "clone-whatsapp"
-    ports:
-      - "8000:8000"
-    links:
-      - db
-    volumes:
-      - .:/go/src/clonewhastapp
 volumes:
-  data:
+  metal_bat_data:
     driver: local

@@ -1,74 +1,38 @@
 package authorization
 
 import (
-	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 
-	"github.com/MikelSot/metal-bat/infrastructure/postgres/sessiontoken"
 	"github.com/MikelSot/metal-bat/model"
-	"github.com/MikelSot/metal-bat/model/authorization"
 )
 
 type AuthValidator struct {
-	param                  model.RemoteConfig
-	logger                 model.Logger
-	serviceAccessCodeParam string
-	tokenParamName         string
-	sessionService         sessiontoken.UseCase
+	logger model.Logger
 }
 
-func NewAuthValidator(param model.RemoteConfig, logger model.Logger, serviceAccessCodeParam string, tokenParamName string, sessionService sessiontoken.UseCase) *AuthValidator {
-	return &AuthValidator{param, logger, serviceAccessCodeParam, tokenParamName, sessionService}
+func NewAuthValidator(logger model.Logger) *AuthValidator {
+	return &AuthValidator{logger}
 }
 
-func (t *AuthValidator) ValidateServiceAccessCode(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		isAuthorized := false
-
-		etlServiceAccessCode, err := t.param.GetByName(t.serviceAccessCodeParam)
-		if err != nil {
-			t.logger.Warnf("no se encontro el access-code en el parametro %s", t.serviceAccessCodeParam)
-			return echo.NewHTTPError(http.StatusUnauthorized, fmt.Errorf("¡Upps! hubo un problema al buscar el access code del servicio"))
-		}
-
-		reqAccessCode := c.QueryParam(t.tokenParamName)
-		if etlServiceAccessCode == reqAccessCode {
-			isAuthorized = true
-		}
-
-		if !isAuthorized {
-			t.logger.Warnf("el access code enviado no es validos %s", reqAccessCode)
-			return echo.NewHTTPError(http.StatusUnauthorized, fmt.Errorf("¡Upps! el access code que nos enviaste no es valido"))
-
-		}
-
-		return next(c)
-	}
-}
-
-// ValidateJWT Middleware para validar los JWT token
-func (t *AuthValidator) ValidateJWT(next echo.HandlerFunc) echo.HandlerFunc {
+func (a *AuthValidator) ValidateToken(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var tokenString string
-		tokenString, err := getTokenFromAuthorizationHeader(c.Request())
+		tokenString, err := getTokenString(c)
 		if err != nil {
-			tokenString, err = getTokenFromURLParams(c.Request())
-			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, "Se encontró un error al tratar de leer el token")
-			}
+			return err
 		}
 
 		verifyFunction := func(token *jwt.Token) (interface{}, error) {
-			return authorization.VerifyKey(), nil
+			return model.VerifyKey(), nil
 		}
 
-		token, err := jwt.ParseWithClaims(tokenString, &authorization.Claim{}, verifyFunction)
+		token, err := jwt.ParseWithClaims(tokenString, &model.Claim{}, verifyFunction)
 		if err != nil {
 			status := http.StatusUnauthorized
 			var msg string
@@ -89,47 +53,49 @@ func (t *AuthValidator) ValidateJWT(next echo.HandlerFunc) echo.HandlerFunc {
 
 			return echo.NewHTTPError(status, msg)
 		}
+
 		if !token.Valid {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Token de acceso no válido")
 		}
 
-		userID := token.Claims.(*authorization.Claim).UserID
-		email := token.Claims.(*authorization.Claim).Email
-		sessionID := token.Claims.(*authorization.Claim).SessionID
-		userType := token.Claims.(*authorization.Claim).UserType
-
-		if t.sessionService != nil {
-			_, err = t.sessionService.GetByIDAndExpiresDate(sessionID)
-			if err == sql.ErrNoRows {
-				return echo.NewHTTPError(http.StatusUnauthorized, "La sesión ha finalizado")
-			}
-			if err != nil {
-				t.logger.Warnf("no fue posible validar la sesión del usuario: %v", err)
-			}
-		}
+		userID := token.Claims.(*model.Claim).UserID
+		email := token.Claims.(*model.Claim).Email
+		userType := token.Claims.(*model.Claim).UserType
 
 		c.Set("userID", userID)
 		c.Set("email", email)
-		c.Set("sessionID", sessionID)
 		c.Set("userType", userType)
 
 		return next(c)
 	}
 }
 
-// getTokenFromAuthorizationHeader busca el token del header Authorization
-func getTokenFromAuthorizationHeader(r *http.Request) (string, error) {
+func getTokenString(c echo.Context) (string, error) {
+	tokenString, err := getHeaderToken(c.Request())
+	if err == nil {
+		return tokenString, nil
+	}
+
+	tokenString, err = getTokenFromURLParams(c.Request())
+	if err == nil {
+		return tokenString, nil
+	}
+
+	return "", echo.NewHTTPError(http.StatusUnauthorized, "Se encontró un error al tratar de leer el token")
+}
+
+// getHeaderToken busca el token del header Authorization
+func getHeaderToken(r *http.Request) (string, error) {
 	ah := r.Header.Get("Authorization")
 	if ah == "" {
 		return "", errors.New("el encabezado no contiene la autorización")
 	}
 
-	// Should be a bearer token
 	if len(ah) > 6 && strings.ToUpper(ah[0:6]) == "BEARER" {
 		return ah[7:], nil
-	} else {
-		return "", errors.New("el header no contiene la palabra Bearer")
 	}
+
+	return "", errors.New("el header no contiene la palabra Bearer")
 }
 
 // getTokenFromURLParams busca el token de la URL
@@ -140,4 +106,27 @@ func getTokenFromURLParams(r *http.Request) (string, error) {
 	}
 
 	return ah, nil
+}
+
+func GenerateToken(u model.User, userType uint, IP string) (string, error) {
+	var token string
+
+	claim := model.Claim{
+		UserID:   u.ID,
+		Email:    u.Email,
+		IPClient: IP,
+		UserType: userType,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 2).Unix(),
+			Issuer:    "autoPro",
+		},
+	}
+
+	newToken := jwt.NewWithClaims(jwt.SigningMethodES256, claim)
+	token, err := newToken.SignedString(model.SignKey())
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

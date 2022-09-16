@@ -1,6 +1,6 @@
 FROM golang:1.17-alpine AS builder
 
-WORKDIR /go/src/clonewhastapp
+WORKDIR /go/src/metal-bat
 
 # add some necessary packages
 RUN apk update && \
