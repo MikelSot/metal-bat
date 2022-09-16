@@ -1,12 +1,10 @@
-package authorization
+package model
 
 import (
 	"crypto/rsa"
 	"sync"
 
 	"github.com/golang-jwt/jwt"
-
-	"github.com/MikelSot/metal-bat/model"
 )
 
 var (
@@ -16,16 +14,14 @@ var (
 )
 
 type Claim struct {
-	UserID    uint   `json:"user_id"`
-	Email     string `json:"email"`
-	Roles     []uint `json:"roles"`
-	SessionID uint   `json:"session_id"`
-	IPClient  string `json:"ip_client"`
-	UserType  uint   `json:"user_type"`
+	UserID   uint   `json:"user_id"`
+	Email    string `json:"email"`
+	IPClient string `json:"ip_client"`
+	UserType uint   `json:"user_type"`
 	jwt.StandardClaims
 }
 
-func LoadSignatures(private, public []byte, logger model.Logger) {
+func LoadSignatures(private, public []byte, logger Logger) {
 	once.Do(func() {
 		var err error
 		signKey, err = jwt.ParseRSAPrivateKeyFromPEM(private)
