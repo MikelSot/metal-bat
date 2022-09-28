@@ -13,6 +13,5 @@ type UseCase interface {
 type UseCaseUser interface {
 	CreateTx(tx model.Transaction, m *model.User) (model.User, error)
 
-	GetByNickname(nickname string) (model.User, error)
 	GetByEmail(email string) (model.User, error)
 }

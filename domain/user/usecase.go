@@ -2,8 +2,11 @@ package user
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/AJRDRGZ/db-query-builder/models"
+	"github.com/gosimple/slug"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/MikelSot/metal-bat/model"
 )
@@ -21,8 +24,21 @@ func New(s Storage) User {
 }
 
 func (u User) CreateTx(tx model.Transaction, m *model.User) (model.User, error) {
+	e := model.NewError()
+
 	if err := model.ValidateStructNil(m); err != nil {
-		return model.User{}, fmt.Errorf("user.CreateTx(): %w", err)
+		return model.User{}, fmt.Errorf("user: %w", err)
+	}
+
+	if u.hasAnEmptyField(*m) {
+		e.SetError(fmt.Errorf("user: All fields are required"))
+		e.SetAPIMessage("¡Upps! todos los campos son obligatorios")
+
+		return model.User{}, e
+	}
+
+	if err := u.assignDefaultNickname(m); err != nil {
+		return model.User{}, err
 	}
 
 	if err := u.storage.CreateTx(tx, m); err != nil {
@@ -96,6 +112,11 @@ func (u User) DeleteSoft(ID uint) error {
 	return nil
 }
 
+func (u User) ValidateUserPassword(email string) (model.User, error) {
+
+	return model.User{}, nil
+}
+
 func (u User) GetByID(ID uint) (model.User, error) {
 	return u.GetWhere(models.FieldsSpecification{
 		Filters: models.Fields{{Name: "id", Value: ID}},
@@ -146,6 +167,37 @@ func (u User) GetWhere(specification models.FieldsSpecification) (model.User, er
 	}
 
 	return user, nil
+}
+
+func (u User) hasAnEmptyField(m model.User) bool {
+	return m.IsStringEmpty(m.Firstname) || m.IsStringEmpty(m.Lastname) || m.IsStringEmpty(m.Email) || m.IsStringEmpty(m.Password)
+}
+
+func (u User) assignDefaultNickname(m *model.User) error {
+	e := model.NewError()
+
+	if m.IsStringEmpty(m.Nickname) {
+		m.Nickname = m.Firstname + m.Lastname
+	}
+
+	m.Nickname = strings.ReplaceAll(m.Nickname, " ", "")
+	m.Nickname = slug.Make(m.Nickname)
+
+	user, err := u.GetByNickname(m.Nickname)
+	if err != nil {
+		return fmt.Errorf("user.u.GetByNickname(): %w", err)
+	}
+	if user.HasID() {
+		e.SetError(fmt.Errorf("user: nickname already exists"))
+		e.SetAPIMessage("¡Upps! el nickname ya existe")
+
+		return e
+	}
+
+	random := uuid.NewV4().String()
+	m.Nickname = fmt.Sprintf("%s%s", m.Nickname, random[:3])
+
+	return nil
 }
 
 //TODO: eliminar los espacios al inicio y final de los nopmbres

@@ -43,6 +43,11 @@ func (u User) DeleteSoft(ID uint) error {
 	panic("implement me")
 }
 
+func (u User) ValidateUserPassword(email string) (model.User, error) {
+
+	return model.User{}, nil
+}
+
 func (u User) GetAllWhere(specification models.FieldsSpecification) (model.Users, error) {
 	//TODO implement me
 	panic("implement me")
