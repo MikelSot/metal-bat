@@ -30,6 +30,7 @@ type User struct {
 	Twitter            string         `json:"twitter"`
 	Facebook           string         `json:"facebook"`
 	Gender             string         `json:"gender"`
+	IsStaff            bool           `json:"is_staff"`
 	Biography          string         `json:"biography"`
 	CreatedAt          time.Time      `json:"created_at"`
 	UpdatedAt          time.Time      `json:"updated_at"`
