@@ -23,3 +23,5 @@ type Appointment struct {
 }
 
 type Appointments []Appointment
+
+func (a Appointment) HasID() bool { return a.ID > 0 }
