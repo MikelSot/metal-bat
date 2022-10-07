@@ -24,17 +24,12 @@ func New(s Storage) User {
 }
 
 func (u User) CreateTx(tx model.Transaction, m *model.User) (model.User, error) {
-	e := model.NewError()
-
 	if err := model.ValidateStructNil(m); err != nil {
 		return model.User{}, fmt.Errorf("user: %w", err)
 	}
 
-	if u.hasAnEmptyField(*m) {
-		e.SetError(fmt.Errorf("user: All fields are required"))
-		e.SetAPIMessage("¡Upps! todos los campos son obligatorios")
-
-		return model.User{}, e
+	if err := m.ValidateFields(); err != nil {
+		return model.User{}, fmt.Errorf("user: %w", err)
 	}
 
 	if err := u.assignDefaultNickname(m); err != nil {
@@ -55,6 +50,10 @@ func (u User) UpdateTx(tx model.Transaction, m *model.User) (model.User, error) 
 
 	if !m.HasID() {
 		return model.User{}, model.ErrInvalidID
+	}
+
+	if err := m.ValidateFields(); err != nil {
+		return model.User{}, fmt.Errorf("user: %w", err)
 	}
 
 	if err := u.storage.UpdateTx(tx, m); err != nil {
@@ -167,10 +166,6 @@ func (u User) GetWhere(specification models.FieldsSpecification) (model.User, er
 	}
 
 	return user, nil
-}
-
-func (u User) hasAnEmptyField(m model.User) bool {
-	return m.IsStringEmpty(m.Firstname) || m.IsStringEmpty(m.Lastname) || m.IsStringEmpty(m.Email) || m.IsStringEmpty(m.Password)
 }
 
 func (u User) assignDefaultNickname(m *model.User) error {

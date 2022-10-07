@@ -17,3 +17,19 @@ type Product struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 	DeletedAt   time.Time `json:"deleted_at"`
 }
+
+type Products []Product
+
+func (p Product) HasID() bool { return p.ID > 0 }
+
+func (p Product) HasEmptyFields() bool {
+	return true
+}
+
+func (p Product) ValidateFields() error {
+	if p.HasEmptyFields() {
+		return errRequiredField("todos los campos son obligatorios")
+	}
+
+	return nil
+}

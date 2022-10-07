@@ -49,4 +49,16 @@ func (u User) IsValidLenEmail() bool {
 	return len(u.Email) >= minLenEmail && len(u.Email) <= maxLenEmail
 }
 
+func (u User) HasEmptyFields() bool {
+	return u.IsStringEmpty(u.Firstname) || u.IsStringEmpty(u.Lastname) || u.IsStringEmpty(u.Email) || u.IsStringEmpty(u.Password)
+}
+
+func (u User) ValidateFields() error {
+	if u.HasEmptyFields() {
+		return errRequiredField("todos los campos son obligatorios")
+	}
+
+	return nil
+}
+
 type Users []User

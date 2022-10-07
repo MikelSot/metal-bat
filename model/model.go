@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -26,4 +27,11 @@ func ValidateStructNil(i interface{}) error {
 	}
 
 	return nil
+}
+
+func errRequiredField(field string) error {
+	e := NewError()
+	e.SetError(fmt.Errorf("missing %s field", field))
+	e.SetAPIMessage(fmt.Sprintf("¡Upps! no enviaste el campo: %s", field))
+	return e
 }
