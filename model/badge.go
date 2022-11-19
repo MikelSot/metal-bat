@@ -20,5 +20,3 @@ const (
 	IdentificationDNI Identification = "DNI"
 	IdentificationRUC Identification = "RUC"
 )
-
-type AppointmentStatus string

@@ -54,7 +54,7 @@ func (a Appointment) DeleteSoft(ID uint) error {
 	return nil
 }
 
-func (a Appointment) GetAllAppointmentsDay(m model.Appointment) (model.Appointments, error) {
+func (a Appointment) GetAllAppointmentsDay() (model.Appointments, error) {
 	//TODO implement me
 	panic("implement me")
 }

@@ -13,7 +13,7 @@ type Storage interface {
 	DeleteSoft(ID uint) error
 
 	//TODO: debe traer todos las citas de hoy y que no esten canceladas, por taller
-	GetAllAppointmentsDay(m model.Appointment) (model.Appointments, error)
+	GetAllAppointmentsDay() (model.Appointments, error)
 	GetAllWhere(specification models.FieldsSpecification) (model.Appointments, error)
 	GetWhere(specification models.FieldsSpecification) (model.Appointment, error)
 }
@@ -23,7 +23,7 @@ type UseCase interface {
 	UpdateTx(tx model.Transaction, m *model.Appointment) (model.Appointment, error)
 	DeleteSoft(ID uint) error
 
-	GetAllAppointmentsDay(m model.Appointment) (model.Appointments, error)
+	GetAllAppointmentsDay() (model.Appointments, error)
 	GetAllWhere(specification models.FieldsSpecification) (model.Appointments, error)
 	GetWhere(specification models.FieldsSpecification) (model.Appointment, error)
 }

@@ -12,13 +12,19 @@ type Storage interface {
 }
 
 type UseCase interface {
-	CreateTx(tx model.Transaction, m *model.Appointment) (model.Appointment, error)
-	UpdateTx(tx model.Transaction, m *model.Appointment) error
+	Create(m *model.Appointment) (model.Appointment, error)
+	Update(m *model.Appointment) (model.Appointment, error)
 	DeleteSoft(ID uint) error
+
+	GetByUserID(userID uint) (model.Appointments, error)
 }
 
 type UseCaseAppointment interface {
-	GetAllAppointmentsDay(m model.Appointment) (model.Appointments, error)
+	CreateTx(tx model.Transaction, m *model.Appointment) (model.Appointment, error)
+	UpdateTx(tx model.Transaction, m *model.Appointment) (model.Appointment, error)
+	DeleteSoft(ID uint) error
+
+	GetAllAppointmentsDay() (model.Appointments, error)
 	GetAllWhere(specification models.FieldsSpecification) (model.Appointment, error)
 	GetWhere(specification models.FieldsSpecification) (model.Appointment, error)
 }
